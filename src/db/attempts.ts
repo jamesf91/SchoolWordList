@@ -6,24 +6,39 @@ export async function insertAttempt(db: SpellingIDB, attempt: Attempt): Promise<
   await db.add(STORE_ATTEMPTS, attempt)
 }
 
-export async function getAttemptsForWord(db: SpellingIDB, wordId: string): Promise<Attempt[]> {
-  return db.getAllFromIndex(STORE_ATTEMPTS, 'by-wordId', wordId)
+export async function getAttemptsForWord(
+  db: SpellingIDB,
+  wordId: string,
+  childId: string,
+): Promise<Attempt[]> {
+  const all = await db.getAllFromIndex(STORE_ATTEMPTS, 'by-childId-wordId', [childId, wordId])
+  return all
 }
 
-export async function getAttemptsAfter(db: SpellingIDB, since: number): Promise<Attempt[]> {
+export async function getAttemptsAfter(
+  db: SpellingIDB,
+  since: number,
+  childId: string,
+): Promise<Attempt[]> {
   const range = IDBKeyRange.lowerBound(since, true)
-  return db.getAllFromIndex(STORE_ATTEMPTS, 'by-date', range)
+  const all = await db.getAllFromIndex(STORE_ATTEMPTS, 'by-date', range)
+  return all.filter(a => a.childId === childId)
 }
 
-export async function getAllAttempts(db: SpellingIDB): Promise<Attempt[]> {
-  return db.getAll(STORE_ATTEMPTS)
+export async function getAllAttempts(db: SpellingIDB, childId: string): Promise<Attempt[]> {
+  return db.getAllFromIndex(STORE_ATTEMPTS, 'by-childId', childId)
 }
 
-/** Returns a map of wordId → Attempt[] for all words that have at least one attempt. */
+export async function getAttemptsByChild(db: SpellingIDB, childId: string): Promise<Attempt[]> {
+  return db.getAllFromIndex(STORE_ATTEMPTS, 'by-childId', childId)
+}
+
+/** Returns a map of wordId → Attempt[] for all words that have at least one attempt, for a given child. */
 export async function getRecentAttemptsGroupedByWord(
   db: SpellingIDB,
+  childId: string,
 ): Promise<Map<string, Attempt[]>> {
-  const all = await db.getAll(STORE_ATTEMPTS)
+  const all = await getAllAttempts(db, childId)
   const map = new Map<string, Attempt[]>()
   for (const attempt of all) {
     const existing = map.get(attempt.wordId)
