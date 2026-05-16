@@ -9,7 +9,10 @@
       "Bash(bd dolt *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(bd show *)",
+      "Bash(bd update *)",
+      "Bash(bd close *)"
     ]
   },
   "hooks": {
