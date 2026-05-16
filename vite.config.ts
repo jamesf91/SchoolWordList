@@ -8,7 +8,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      manifest: false, // manifest defined in index.html / public/manifest.webmanifest
+      strategies: 'generateSW',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      },
+      manifest: {
+        name: 'Spelling Practice',
+        short_name: 'Spelling',
+        description: 'Audio-based spelling revision for primary school children',
+        start_url: '/',
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#ffffff',
+        theme_color: '#6366f1',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable any' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable any' },
+        ],
+      },
     }),
   ],
   resolve: {
@@ -19,7 +36,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: [],
+    setupFiles: ['src/test-setup.ts'],
     typecheck: {
       tsconfig: './tsconfig.test.json',
     },

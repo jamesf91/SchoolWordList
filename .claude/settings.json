@@ -13,7 +13,22 @@
       "Bash(bd show *)",
       "Bash(bd update *)",
       "Bash(bd close *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(bd list *)",
+      "Bash(bd prime)",
+      "Bash(bd blocked)",
+      "Bash(bd orphans)",
+      "Bash(bd stale)",
+      "Bash(bd lint)",
+      "Bash(bd preflight)",
+      "Bash(bd search *)",
+      "Bash(npm run test)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(git stash *)",
+      "Bash(npx tsc *)",
+      "Bash(npm install *)"
     ]
   },
   "hooks": {
