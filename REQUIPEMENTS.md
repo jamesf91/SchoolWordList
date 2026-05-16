@@ -15,6 +15,8 @@
 - Record the week number and focus sound for each week's list
 - Edit or delete words from any week
 - View progress stats and session history
+- Export all word lists to an XML file (backup / cross-device sharing)
+- Import word lists from an XML file (merges alongside existing data; duplicate week numbers are skipped with a warning)
 
 ### Child mode
 - Default experience when the app opens — no login required
@@ -79,5 +81,5 @@ Rules:
 
 - Multi-child or multi-user profiles
 - Teacher / school-wide sharing
-- Cloud sync
+- Cloud sync (XML export/import is supported for local backup and manual cross-device transfer)
 - Hints or letter scaffolding during a session
