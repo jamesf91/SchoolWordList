@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "SchoolWordList",
+  "project_id": "7f3f5c61-86ba-4d14-9378-c96eb240b07e"
+}
