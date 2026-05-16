@@ -7,6 +7,9 @@ import type { Week, Word, Attempt } from '@/types'
 vi.mock('@/context/db-context', () => ({
   useDb: () => ({ db: {}, loading: false, error: null }),
 }))
+vi.mock('@/context/child-context', () => ({
+  useChild: () => ({ activeChild: { id: 'child-1', name: 'Test', createdAt: 0 }, setActiveChild: vi.fn(), clearActiveChild: vi.fn() }),
+}))
 vi.mock('@/db/weeks', () => ({ getAllWeeks: vi.fn() }))
 vi.mock('@/db/words', () => ({ getAllWords: vi.fn() }))
 vi.mock('@/db/attempts', () => ({ getAllAttempts: vi.fn() }))

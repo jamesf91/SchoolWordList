@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useDb } from '@/context/db-context'
+import { useChild } from '@/context/child-context'
 import { getAllWeeks } from '@/db/weeks'
 import { getAllWords } from '@/db/words'
 import { getAllAttempts } from '@/db/attempts'
@@ -29,6 +30,7 @@ function lastSessionWordIds(allAttempts: { wordId: string; date: number }[]): st
 
 export function useRevisionSession(): RevisionSession {
   const { db, loading: dbLoading } = useDb()
+  const { activeChild } = useChild()
   const [words, setWords] = useState<Word[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
@@ -38,10 +40,11 @@ export function useRevisionSession(): RevisionSession {
     if (dbLoading || !db) return
 
     async function load() {
+      const childId = activeChild?.id
       const [allWeeks, allWords, allAttempts] = await Promise.all([
         getAllWeeks(db!),
         getAllWords(db!),
-        getAllAttempts(db!),
+        childId ? getAllAttempts(db!, childId) : Promise.resolve([]),
       ])
 
       const sessionWords = buildRevisionList({
@@ -57,7 +60,7 @@ export function useRevisionSession(): RevisionSession {
     }
 
     load()
-  }, [db, dbLoading])
+  }, [db, dbLoading, activeChild])
 
   const advance = useCallback(() => {
     setCurrentIndex(prev => {
