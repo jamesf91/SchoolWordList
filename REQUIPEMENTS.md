@@ -2,8 +2,8 @@
 
 ## Users
 
-- **Parent** — enters and manages word lists, reviews progress. Uses a PIN to access admin screens.
-- **Child** — primary user of the practice session. Age 5–10, primary school. Uses the app independently on a tablet.
+- **Parent** — enters and manages word lists, reviews progress, manages child profiles. Uses a PIN to access admin screens.
+- **Child** — primary user of the practice session. Age 5–10, primary school. Selects their profile and uses the app independently on a tablet. Multiple children can share one device.
 
 ---
 
@@ -14,12 +14,16 @@
 - Enter the weekly word list, assigning each word a category: `core`, `tricky`, or `extension`
 - Record the week number and focus sound for each week's list
 - Edit or delete words from any week
-- View progress stats and session history
+- View progress stats and session history **per child**
 - Export all word lists to an XML file (backup / cross-device sharing)
 - Import word lists from an XML file (merges alongside existing data; duplicate week numbers are skipped with a warning)
+- Manage child profiles: add, rename, and delete named profiles
+- Deletion of a profile with existing attempt records is blocked (data safety)
 
 ### Child mode
 - Default experience when the app opens — no login required
+- If multiple child profiles exist, the home screen shows a **profile picker** before starting
+- If only one child profile exists, it is auto-selected (no picker shown)
 - Word is presented by audio only; the word text is never shown during a session
 - Child types their answer into a text input
 - Tap a replay button at any time to hear the word again
@@ -70,16 +74,26 @@ Rules:
 
 ---
 
+## Child profiles
+
+- Each named child has their own independent attempt history
+- Word lists (weeks + words) are **shared** across all children — the parent enters them once
+- The active child is stored in `localStorage` so the selection persists across sessions
+- On first launch after a device upgrade from the single-child version, all existing attempt history is automatically assigned to a default profile named "Child 1"; the parent can rename it in Settings
+
+---
+
 ## Data rules
 
 - All scores, mastery status, and error counts are **derived from raw Attempt records** — never stored as separate state
+- Attempt records are partitioned by `childId` — queries always filter to the active child
 - No data leaves the device — fully offline, no network calls
 
 ---
 
 ## Out of scope (for now)
 
-- Multi-child or multi-user profiles
+- Per-child word lists (all children share the same parent-managed word lists)
 - Teacher / school-wide sharing
 - Cloud sync (XML export/import is supported for local backup and manual cross-device transfer)
 - Hints or letter scaffolding during a session
