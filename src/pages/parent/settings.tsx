@@ -1,10 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePinGate } from '@/hooks/use-pin-gate'
 import { hashPin, loadPinHash, savePinHash, verifyPin } from '@/lib/pin'
 import { Button } from '@/components/ui/button'
-import { BTN_BACK, BTN_SAVE, MSG_WRONG_PIN, ERR_SAVE_FAILED } from '@/constants/strings'
+import {
+  BTN_BACK, BTN_SAVE, MSG_WRONG_PIN, ERR_SAVE_FAILED,
+  LABEL_EXPORT, BTN_EXPORT, EXPORT_DESC,
+  LABEL_IMPORT, BTN_IMPORT, IMPORT_DESC,
+  MSG_IMPORT_SUCCESS, MSG_IMPORT_NOTHING, ERR_IMPORT_FAILED,
+} from '@/constants/strings'
 import { SESSION_SIZE } from '@/constants/config'
+import { useDb } from '@/context/db-context'
+import { getAllWeeks, upsertWeek } from '@/db/weeks'
+import { getAllWords, upsertWord } from '@/db/words'
+import { exportToXml, parseXml } from '@/lib/xml-io'
 
 const LS_SESSION_SIZE = 'sp_ss'
 
@@ -17,12 +26,16 @@ function loadSessionSize(): number {
 export default function ParentSettings() {
   const navigate = useNavigate()
   const { lock } = usePinGate()
+  const { db } = useDb()
   const [sessionSize, setSessionSize] = useState(loadSessionSize)
   const [currentPin, setCurrentPin] = useState('')
   const [newPin, setNewPin] = useState('')
   const [confirmPin, setConfirmPin] = useState('')
   const [pinMsg, setPinMsg] = useState('')
   const [clearStep, setClearStep] = useState(0)
+  const [importMsg, setImportMsg] = useState('')
+  const [importErrors, setImportErrors] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     localStorage.setItem(LS_SESSION_SIZE, String(sessionSize))
@@ -56,6 +69,51 @@ export default function ParentSettings() {
         setPinMsg(ERR_SAVE_FAILED)
       }
     }
+  }
+
+  async function handleExport() {
+    if (!db) return
+    const [weeks, words] = await Promise.all([getAllWeeks(db), getAllWords(db)])
+    const xml = exportToXml(weeks, words)
+    const blob = new Blob([xml], { type: 'application/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `spelling-wordlists-${new Date().toISOString().slice(0, 10)}.xml`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportClick() {
+    setImportMsg('')
+    setImportErrors([])
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !db) return
+    e.target.value = ''
+
+    let text: string
+    try {
+      text = await file.text()
+    } catch {
+      setImportMsg(ERR_IMPORT_FAILED)
+      return
+    }
+
+    const { weeks, words, errors } = parseXml(text)
+    setImportErrors(errors)
+
+    if (weeks.length === 0) {
+      setImportMsg(MSG_IMPORT_NOTHING)
+      return
+    }
+
+    for (const week of weeks) await upsertWeek(db, week)
+    for (const word of words) await upsertWord(db, word)
+    setImportMsg(MSG_IMPORT_SUCCESS(weeks.length, words.length))
   }
 
   return (
@@ -118,6 +176,35 @@ export default function ParentSettings() {
             {pinMsg && <p className="text-sm text-slate-600">{pinMsg}</p>}
             <Button onClick={handleChangePın}>{BTN_SAVE} code</Button>
           </div>
+        </section>
+
+        {/* Export */}
+        <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+          <h2 className="mb-1 text-lg font-semibold text-slate-800">{LABEL_EXPORT}</h2>
+          <p className="mb-4 text-sm text-slate-600">{EXPORT_DESC}</p>
+          <Button onClick={handleExport} className="w-full">{BTN_EXPORT}</Button>
+        </section>
+
+        {/* Import */}
+        <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+          <h2 className="mb-1 text-lg font-semibold text-slate-800">{LABEL_IMPORT}</h2>
+          <p className="mb-4 text-sm text-slate-600">{IMPORT_DESC}</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xml,application/xml,text/xml"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button onClick={handleImportClick} className="w-full">{BTN_IMPORT}</Button>
+          {importMsg && <p className="mt-3 text-sm text-slate-700">{importMsg}</p>}
+          {importErrors.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {importErrors.map((err, i) => (
+                <li key={i} className="text-xs text-amber-700">{err}</li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* Clear all data */}

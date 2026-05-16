@@ -100,6 +100,20 @@ export const LABEL_CORRECT = 'Correct'
 export const LABEL_ACCURACY = 'Accuracy'
 export const MSG_NO_ATTEMPTS = 'No attempts recorded yet.'
 
+// ── Import / Export ───────────────────────────────────────────────────────────
+
+export const LABEL_EXPORT = 'Export word lists'
+export const BTN_EXPORT = 'Export as XML'
+export const EXPORT_DESC = 'Download all weeks and words as an XML file you can keep as a backup or share with another device.'
+
+export const LABEL_IMPORT = 'Import word lists'
+export const BTN_IMPORT = 'Choose XML file…'
+export const IMPORT_DESC = 'Load weeks and words from an XML file. Existing data is kept — imported weeks are added alongside it.'
+export const MSG_IMPORT_SUCCESS = (weeks: number, words: number) =>
+  `Imported ${weeks} week${weeks !== 1 ? 's' : ''} and ${words} word${words !== 1 ? 's' : ''}.`
+export const MSG_IMPORT_NOTHING = 'No valid weeks found in the file.'
+export const ERR_IMPORT_FAILED = 'Could not read the file. Please try again.'
+
 // ── Errors ────────────────────────────────────────────────────────────────────
 
 export const ERR_GENERIC = 'Something went wrong. Please try again.'
