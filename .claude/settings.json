@@ -12,7 +12,8 @@
       "Bash(git push *)",
       "Bash(bd show *)",
       "Bash(bd update *)",
-      "Bash(bd close *)"
+      "Bash(bd close *)",
+      "Bash(git pull *)"
     ]
   },
   "hooks": {
