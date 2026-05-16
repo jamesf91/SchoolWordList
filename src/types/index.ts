@@ -19,6 +19,13 @@ export interface Word {
 export interface Attempt {
   id: string
   wordId: string
+  childId: string
   date: number
   correct: boolean
+}
+
+export interface ChildProfile {
+  id: string
+  name: string
+  createdAt: number
 }
