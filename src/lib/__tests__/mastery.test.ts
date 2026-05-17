@@ -3,7 +3,7 @@ import { consecutiveCorrect, isMastered } from '../mastery'
 import type { Attempt } from '@/types'
 
 function attempt(date: number, correct: boolean): Attempt {
-  return { id: String(date), wordId: 'w1', date, correct }
+  return { id: String(date), wordId: 'w1', childId: 'child-test', date, correct }
 }
 
 describe('consecutiveCorrect', () => {
