@@ -10,9 +10,16 @@ import {
   BTN_FINISH_SESSION,
 } from '@/constants/strings'
 
+interface WordResult {
+  text: string
+  correct: boolean
+  answer: string
+}
+
 interface SummaryState {
   correct: number
   total: number
+  words?: WordResult[]
 }
 
 function starsForScore(correct: number, total: number): 1 | 2 | 3 {
@@ -26,8 +33,8 @@ function starsForScore(correct: number, total: number): 1 | 2 | 3 {
 export default function ChildSummary() {
   const navigate = useNavigate()
   const location = useLocation()
-  const state = (location.state ?? { correct: 0, total: 0 }) as SummaryState
-  const { correct, total } = state
+  const state = (location.state ?? { correct: 0, total: 0, words: [] }) as SummaryState
+  const { correct, total, words = [] } = state
   const stars = starsForScore(correct, total)
   const isPerfect = correct === total && total > 0
 
@@ -42,6 +49,16 @@ export default function ChildSummary() {
       <p className="text-xl text-slate-500">
         {isPerfect ? SUMMARY_PERFECT : SUMMARY_ENCOURAGE}
       </p>
+
+      {words.length > 0 && (
+        <ul className="w-full max-w-xs text-left text-lg font-medium space-y-1">
+          {words.map((w, i) => (
+            <li key={i} className={w.correct ? 'text-green-600' : 'text-red-500'}>
+              {w.correct ? w.text : <>{w.answer} <span className="text-slate-500 font-normal">({w.text})</span></>}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="flex flex-col gap-4 w-full max-w-xs">
         <Button onClick={() => navigate('/session')} className="w-full text-xl py-4">

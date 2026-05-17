@@ -11,9 +11,16 @@ import { Spinner } from '@/components/ui/spinner'
 import { nanoid } from 'nanoid'
 import { LABEL_WORD_COUNT } from '@/constants/strings'
 
+interface WordResult {
+  text: string
+  correct: boolean
+  answer: string
+}
+
 interface SessionResult {
   correct: number
   total: number
+  words: WordResult[]
 }
 
 export default function ChildSession() {
@@ -28,7 +35,7 @@ export default function ChildSession() {
     if (!activeChild) navigate('/', { replace: true })
   }, [activeChild, navigate])
   const [result, setResult] = useState<{ correct: boolean } | null>(null)
-  const [sessionResults, setSessionResults] = useState<SessionResult>({ correct: 0, total: 0 })
+  const [sessionResults, setSessionResults] = useState<SessionResult>({ correct: 0, total: 0, words: [] })
 
   const currentWord = words[currentIndex]
 
@@ -51,6 +58,7 @@ export default function ChildSession() {
     setSessionResults(prev => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1,
+      words: [...prev.words, { text: currentWord.text, correct: isCorrect, answer: answer.trim() }],
     }))
   }, [currentWord, insertAttempt])
 
