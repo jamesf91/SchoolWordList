@@ -7,6 +7,7 @@ import { hashPin, loadPinHash, savePinHash, verifyPin } from '@/lib/pin'
 import { Button } from '@/components/ui/button'
 import {
   BTN_BACK, BTN_SAVE, BTN_CANCEL, BTN_DELETE, BTN_EDIT, MSG_WRONG_PIN, ERR_SAVE_FAILED,
+  LABEL_PREFETCH_EXAMPLES, BTN_PREFETCH_EXAMPLES, PREFETCH_DESC, MSG_PREFETCH_DONE,
   LABEL_EXPORT, BTN_EXPORT, EXPORT_DESC,
   LABEL_IMPORT, BTN_IMPORT, IMPORT_DESC,
   MSG_IMPORT_SUCCESS, MSG_IMPORT_NOTHING, ERR_IMPORT_FAILED,
@@ -19,6 +20,7 @@ import { getAllWeeks, upsertWeek } from '@/db/weeks'
 import { getAllWords, upsertWord } from '@/db/words'
 import { getExample, setExample } from '@/db/examples'
 import { exportToXml, parseXml } from '@/lib/xml-io'
+import { fetchExampleSentence } from '@/lib/fetch-example'
 
 const LS_SESSION_SIZE = 'sp_ss'
 
@@ -42,6 +44,8 @@ export default function ParentSettings() {
   const [clearStep, setClearStep] = useState(0)
   const [importMsg, setImportMsg] = useState('')
   const [importErrors, setImportErrors] = useState<string[]>([])
+  const [prefetchMsg, setPrefetchMsg] = useState('')
+  const [prefetching, setPrefetching] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Child profile management state
   const [newChildName, setNewChildName] = useState('')
@@ -81,6 +85,31 @@ export default function ParentSettings() {
       } catch {
         setPinMsg(ERR_SAVE_FAILED)
       }
+    }
+  }
+
+  async function handlePrefetchExamples() {
+    if (!db || prefetching) return
+    setPrefetching(true)
+    setPrefetchMsg('')
+    try {
+      const words = await getAllWords(db)
+      let fetched = 0
+      let skipped = 0
+      for (const word of words) {
+        const existing = await getExample(db, word.id).catch(() => null)
+        if (existing) continue
+        const sentence = await fetchExampleSentence(word.text)
+        if (sentence) {
+          await setExample(db, word.id, sentence).catch(() => {})
+          fetched++
+        } else {
+          skipped++
+        }
+      }
+      setPrefetchMsg(MSG_PREFETCH_DONE(fetched, skipped))
+    } finally {
+      setPrefetching(false)
     }
   }
 
@@ -276,6 +305,16 @@ export default function ParentSettings() {
             {pinMsg && <p className="text-sm text-slate-600">{pinMsg}</p>}
             <Button onClick={handleChangePın}>{BTN_SAVE} code</Button>
           </div>
+        </section>
+
+        {/* Prefetch examples */}
+        <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+          <h2 className="mb-1 text-lg font-semibold text-slate-800">{LABEL_PREFETCH_EXAMPLES}</h2>
+          <p className="mb-4 text-sm text-slate-600">{PREFETCH_DESC}</p>
+          <Button onClick={handlePrefetchExamples} disabled={prefetching} className="w-full">
+            {prefetching ? 'Fetching…' : BTN_PREFETCH_EXAMPLES}
+          </Button>
+          {prefetchMsg && <p className="mt-3 text-sm text-slate-700">{prefetchMsg}</p>}
         </section>
 
         {/* Export */}

@@ -120,6 +120,14 @@ export const LABEL_CHILDREN = 'Children'
 
 // ── Import / Export ───────────────────────────────────────────────────────────
 
+export const LABEL_PREFETCH_EXAMPLES = 'Example sentences'
+export const BTN_PREFETCH_EXAMPLES = 'Fetch missing examples'
+export const PREFETCH_DESC = 'Downloads an example sentence for any word that doesn\'t have one yet. Requires an internet connection.'
+export const MSG_PREFETCH_DONE = (fetched: number, skipped: number) =>
+  fetched === 0
+    ? 'All words already have example sentences.'
+    : `Fetched ${fetched} example${fetched !== 1 ? 's' : ''}${skipped > 0 ? `, ${skipped} not found` : ''}.`
+
 export const LABEL_EXPORT = 'Export word lists'
 export const BTN_EXPORT = 'Export as XML'
 export const EXPORT_DESC = 'Download all weeks and words as an XML file you can keep as a backup or share with another device.'
