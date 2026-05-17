@@ -46,6 +46,7 @@ export default function ParentSettings() {
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [prefetchMsg, setPrefetchMsg] = useState('')
   const [prefetching, setPrefetching] = useState(false)
+  const [prefetchProgress, setPrefetchProgress] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Child profile management state
   const [newChildName, setNewChildName] = useState('')
@@ -92,13 +93,23 @@ export default function ParentSettings() {
     if (!db || prefetching) return
     setPrefetching(true)
     setPrefetchMsg('')
+    setPrefetchProgress('')
     try {
       const words = await getAllWords(db)
-      let fetched = 0
-      let skipped = 0
+      const missing = []
       for (const word of words) {
         const existing = await getExample(db, word.id).catch(() => null)
-        if (existing) continue
+        if (!existing) missing.push(word)
+      }
+      if (missing.length === 0) {
+        setPrefetchMsg(MSG_PREFETCH_DONE(0, 0))
+        return
+      }
+      let fetched = 0
+      let skipped = 0
+      for (let i = 0; i < missing.length; i++) {
+        const word = missing[i]
+        setPrefetchProgress(`${i + 1} / ${missing.length}: ${word.text}`)
         const sentence = await fetchExampleSentence(word.text)
         if (sentence) {
           await setExample(db, word.id, sentence).catch(() => {})
@@ -106,7 +117,9 @@ export default function ParentSettings() {
         } else {
           skipped++
         }
+        if (i < missing.length - 1) await new Promise(r => setTimeout(r, 300))
       }
+      setPrefetchProgress('')
       setPrefetchMsg(MSG_PREFETCH_DONE(fetched, skipped))
     } finally {
       setPrefetching(false)
@@ -314,7 +327,8 @@ export default function ParentSettings() {
           <Button onClick={handlePrefetchExamples} disabled={prefetching} className="w-full">
             {prefetching ? 'Fetching…' : BTN_PREFETCH_EXAMPLES}
           </Button>
-          {prefetchMsg && <p className="mt-3 text-sm text-slate-700">{prefetchMsg}</p>}
+          {prefetchProgress && <p className="mt-3 text-sm text-slate-500">{prefetchProgress}</p>}
+          {prefetchMsg && <p className="mt-1 text-sm text-slate-700">{prefetchMsg}</p>}
         </section>
 
         {/* Export */}
