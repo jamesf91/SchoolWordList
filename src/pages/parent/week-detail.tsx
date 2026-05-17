@@ -32,7 +32,8 @@ export default function WeekDetail() {
 
   async function handleAddWord(category: WordCategory) {
     if (!newText.trim() || !weekId) return
-    await upsertWord({ id: nanoid(), weekId, text: newText.trim(), category })
+    const texts = newText.split(',').map(w => w.trim()).filter(Boolean)
+    await Promise.all(texts.map(text => upsertWord({ id: nanoid(), weekId, text, category })))
     setNewText('')
     setAdding(null)
   }

@@ -78,7 +78,7 @@ export const PLACEHOLDER_FOCUS_SOUND = 'e.g. igh, tion, ough'
 export const BTN_ADD_WEEK = 'Add week'
 export const BTN_ADD_WORD = 'Add word'
 export const LABEL_WORD_TEXT = 'Word'
-export const PLACEHOLDER_WORD = 'e.g. light'
+export const PLACEHOLDER_WORD = 'e.g. light, night, bright'
 export const LABEL_CATEGORY = 'Category'
 export const CATEGORY_LABELS: Record<string, string> = {
   core: 'Core',

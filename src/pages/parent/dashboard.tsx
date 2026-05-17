@@ -5,7 +5,7 @@ import { usePinGate } from '@/hooks/use-pin-gate'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
-import { NAV_PROGRESS, BTN_ADD_WEEK, BTN_EXIT_PARENT_MODE, MSG_NO_WEEKS } from '@/constants/strings'
+import { NAV_PROGRESS, NAV_SETTINGS, BTN_ADD_WEEK, BTN_EXIT_PARENT_MODE, MSG_NO_WEEKS } from '@/constants/strings'
 import { useEffect, useState } from 'react'
 import { getAllWords } from '@/db/words'
 import type { Word } from '@/types'
@@ -39,6 +39,9 @@ export default function ParentDashboard() {
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => navigate('/parent/progress')} className="text-sm">
               {NAV_PROGRESS}
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/parent/settings')} className="text-sm">
+              {NAV_SETTINGS}
             </Button>
             <Button variant="secondary" onClick={lock} className="text-sm">
               {BTN_EXIT_PARENT_MODE}
