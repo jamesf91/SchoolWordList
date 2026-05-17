@@ -5,13 +5,11 @@ import {
   CELEBRATION_MESSAGES,
   MSG_INCORRECT,
   MSG_INCORRECT_ENCOURAGEMENT,
-  LABEL_EXAMPLE_SENTENCE,
 } from '@/constants/strings'
 
 interface ResultPanelProps {
   correct: boolean
   correctSpelling: string
-  exampleSentence?: string | null
   onNext(): void
 }
 
@@ -19,7 +17,7 @@ function randomCelebration(): string {
   return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)] ?? 'Well done!'
 }
 
-export function ResultPanel({ correct, correctSpelling, exampleSentence, onNext }: ResultPanelProps) {
+export function ResultPanel({ correct, correctSpelling, onNext }: ResultPanelProps) {
   // Pick once per result display, not on every render
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const celebration = useMemo(() => randomCelebration(), [correct])
@@ -35,13 +33,6 @@ export function ResultPanel({ correct, correctSpelling, exampleSentence, onNext 
           <p className="text-base text-slate-500">{MSG_INCORRECT_ENCOURAGEMENT}</p>
         </div>
       )}
-      {exampleSentence && (
-        <p className="text-base text-slate-500 italic">
-          <span className="not-italic font-medium text-slate-600">{LABEL_EXAMPLE_SENTENCE}</span>{' '}
-          {exampleSentence}
-        </p>
-      )}
-
       <Button onClick={onNext} className="w-full text-xl">
         {BTN_NEXT_WORD}
       </Button>

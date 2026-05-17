@@ -17,6 +17,7 @@ import { SESSION_SIZE } from '@/constants/config'
 import { useDb } from '@/context/db-context'
 import { getAllWeeks, upsertWeek } from '@/db/weeks'
 import { getAllWords, upsertWord } from '@/db/words'
+import { getExample, setExample } from '@/db/examples'
 import { exportToXml, parseXml } from '@/lib/xml-io'
 
 const LS_SESSION_SIZE = 'sp_ss'
@@ -86,7 +87,16 @@ export default function ParentSettings() {
   async function handleExport() {
     if (!db) return
     const [weeks, words] = await Promise.all([getAllWeeks(db), getAllWords(db)])
-    const xml = exportToXml(weeks, words)
+    const exampleEntries = await Promise.all(
+      words.map(async w => {
+        const sentence = await getExample(db, w.id)
+        return sentence ? ([w.id, sentence] as [string, string]) : null
+      })
+    )
+    const examples = new Map<string, string>(
+      exampleEntries.filter((e): e is [string, string] => e !== null)
+    )
+    const xml = exportToXml(weeks, words, examples)
     const blob = new Blob([xml], { type: 'application/xml' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -115,7 +125,7 @@ export default function ParentSettings() {
       return
     }
 
-    const { weeks, words, errors } = parseXml(text)
+    const { weeks, words, examples, errors } = parseXml(text)
     setImportErrors(errors)
 
     if (weeks.length === 0) {
@@ -125,6 +135,7 @@ export default function ParentSettings() {
 
     for (const week of weeks) await upsertWeek(db, week)
     for (const word of words) await upsertWord(db, word)
+    for (const [wordId, sentence] of examples) await setExample(db, wordId, sentence)
     setImportMsg(MSG_IMPORT_SUCCESS(weeks.length, words.length))
   }
 

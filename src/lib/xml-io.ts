@@ -6,10 +6,12 @@ const VALID_CATEGORIES = new Set<WordCategory>(['core', 'tricky', 'extension'])
 export interface ImportResult {
   weeks: Week[]
   words: Word[]
+  /** wordId → example sentence, for words that had an example attribute */
+  examples: Map<string, string>
   errors: string[]
 }
 
-export function exportToXml(weeks: Week[], words: Word[]): string {
+export function exportToXml(weeks: Week[], words: Word[], examples: Map<string, string>): string {
   const wordsByWeek = new Map<string, Word[]>()
   for (const word of words) {
     const bucket = wordsByWeek.get(word.weekId) ?? []
@@ -20,10 +22,11 @@ export function exportToXml(weeks: Week[], words: Word[]): string {
   const lines: string[] = ['<?xml version="1.0" encoding="UTF-8"?>', '<wordlists>']
 
   for (const week of [...weeks].sort((a, b) => a.weekNumber - b.weekNumber)) {
-    const escaped = escapeXml(week.focusSound)
-    lines.push(`  <week number="${week.weekNumber}" focusSound="${escaped}">`)
+    lines.push(`  <week number="${week.weekNumber}" focusSound="${escapeXml(week.focusSound)}">`)
     for (const word of wordsByWeek.get(week.id) ?? []) {
-      lines.push(`    <word category="${word.category}">${escapeXml(word.text)}</word>`)
+      const example = examples.get(word.id)
+      const exampleAttr = example ? ` example="${escapeXml(example)}"` : ''
+      lines.push(`    <word category="${word.category}"${exampleAttr}>${escapeXml(word.text)}</word>`)
     }
     lines.push('  </week>')
   }
@@ -36,6 +39,7 @@ export function parseXml(xml: string): ImportResult {
   const errors: string[] = []
   const weeks: Week[] = []
   const words: Word[] = []
+  const examples = new Map<string, string>()
 
   let doc: Document
   try {
@@ -92,11 +96,14 @@ export function parseXml(xml: string): ImportResult {
       const category: WordCategory = VALID_CATEGORIES.has(rawCat as WordCategory)
         ? (rawCat as WordCategory)
         : 'core'
-      words.push({ id: nanoid(), weekId: week.id, text, category })
+      const wordId = nanoid()
+      words.push({ id: wordId, weekId: week.id, text, category })
+      const example = (wordEl.getAttribute('example') ?? '').trim()
+      if (example) examples.set(wordId, example)
     }
   }
 
-  return { weeks, words, errors }
+  return { weeks, words, examples, errors }
 }
 
 function escapeXml(s: string): string {

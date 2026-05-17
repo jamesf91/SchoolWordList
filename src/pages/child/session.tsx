@@ -11,7 +11,7 @@ import { ResultPanel } from '@/components/child/result-panel'
 import { Spinner } from '@/components/ui/spinner'
 import { getExample } from '@/db/examples'
 import { nanoid } from 'nanoid'
-import { LABEL_WORD_COUNT } from '@/constants/strings'
+import { LABEL_WORD_COUNT, LABEL_EXAMPLE_SENTENCE } from '@/constants/strings'
 
 interface WordResult {
   text: string
@@ -115,6 +115,21 @@ export default function ChildSession() {
       {/* ReplayButton always visible — word text NEVER shown */}
       <ReplayButton onReplay={handleReplay} isSpeaking={isSpeaking} />
 
+      {/* Example sentence above word box — target word replaced with fixed-width blank */}
+      {result === null && exampleSentence && currentWord && (() => {
+        const parts = exampleSentence.split(new RegExp(`(${currentWord.text})`, 'gi'))
+        return (
+          <p className="text-lg text-slate-500 italic text-center max-w-lg">
+            <span className="not-italic font-medium text-slate-600">{LABEL_EXAMPLE_SENTENCE}</span>{' '}
+            {parts.map((part, i) =>
+              part.toLowerCase() === currentWord.text.toLowerCase()
+                ? <span key={i} className="inline-block w-16 border-b-2 border-slate-400 align-bottom mx-0.5" aria-label="blank" />
+                : part
+            )}
+          </p>
+        )
+      })()}
+
       {result === null ? (
         <SpellingInput
           key={currentIndex}
@@ -125,7 +140,6 @@ export default function ChildSession() {
         <ResultPanel
           correct={result.correct}
           correctSpelling={currentWord?.text ?? ''}
-          exampleSentence={exampleSentence}
           onNext={handleNext}
         />
       )}
