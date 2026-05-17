@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useDb } from '@/context/db-context'
 import { useChild } from '@/context/child-context'
 import { getAllWeeks } from '@/db/weeks'
@@ -17,6 +18,15 @@ interface RevisionSession {
 
 const MS_PER_HOUR = 60 * 60 * 1000
 
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j]!, out[i]!]
+  }
+  return out
+}
+
 /** Groups attempt records by the hour they occurred in to identify the last session. */
 function lastSessionWordIds(allAttempts: { wordId: string; date: number }[]): string[] {
   if (allAttempts.length === 0) return []
@@ -31,6 +41,8 @@ function lastSessionWordIds(allAttempts: { wordId: string; date: number }[]): st
 export function useRevisionSession(): RevisionSession {
   const { db, loading: dbLoading } = useDb()
   const { activeChild } = useChild()
+  const [searchParams] = useSearchParams()
+  const mode = searchParams.get('mode') // 'all' | null
   const [words, setWords] = useState<Word[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
@@ -47,20 +59,25 @@ export function useRevisionSession(): RevisionSession {
         childId ? getAllAttempts(db!, childId) : Promise.resolve([]),
       ])
 
-      const sessionWords = buildRevisionList({
-        allWords,
-        allWeeks,
-        allAttempts,
-        lastSessionWordIds: lastSessionWordIds(allAttempts),
-        currentDate: Date.now(),
-      })
+      let sessionWords: Word[]
+      if (mode === 'all') {
+        sessionWords = shuffle(allWords).slice(0, 10)
+      } else {
+        sessionWords = buildRevisionList({
+          allWords,
+          allWeeks,
+          allAttempts,
+          lastSessionWordIds: lastSessionWordIds(allAttempts),
+          currentDate: Date.now(),
+        })
+      }
 
       setWords(sessionWords)
       setLoading(false)
     }
 
     load()
-  }, [db, dbLoading, activeChild])
+  }, [db, dbLoading, activeChild, mode])
 
   const advance = useCallback(() => {
     setCurrentIndex(prev => {

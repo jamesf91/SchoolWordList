@@ -5,6 +5,9 @@ export const APP_TITLE = 'Spelling Practice'
 // ── Navigation / general ─────────────────────────────────────────────────────
 
 export const BTN_START_SESSION = 'Start practising'
+export const LABEL_CHOOSE_MODE = 'How do you want to practise?'
+export const BTN_MODE_WEEKLY = "This week's words"
+export const BTN_MODE_ALL = 'All words'
 export const BTN_CONTINUE = 'Continue'
 export const BTN_DONE = 'Done'
 export const BTN_CANCEL = 'Cancel'

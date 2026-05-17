@@ -43,6 +43,13 @@ export default function ChildSession() {
     if (currentWord && isSupported) speak(currentWord.text)
   }, [currentWord, speak, isSupported])
 
+  // Auto-read the word 1 second after it appears
+  useEffect(() => {
+    if (!currentWord || !isSupported || result !== null) return
+    const timer = setTimeout(() => speak(currentWord.text), 500)
+    return () => clearTimeout(timer)
+  }, [currentIndex, currentWord, isSupported, result, speak])
+
   const handleSubmit = useCallback(async (answer: string) => {
     if (!currentWord) return
     const isCorrect = answer.trim().toLowerCase() === currentWord.text.trim().toLowerCase()

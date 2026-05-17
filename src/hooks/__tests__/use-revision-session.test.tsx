@@ -1,7 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { useRevisionSession } from '../use-revision-session'
 import type { Week, Word, Attempt } from '@/types'
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <MemoryRouter initialEntries={['/session']}>{children}</MemoryRouter>
+)
 
 // vi.mock factories are hoisted — use vi.fn() with no args; wire return values in beforeEach
 vi.mock('@/context/db-context', () => ({
@@ -35,26 +40,26 @@ describe('useRevisionSession', () => {
   })
 
   it('starts in loading state', () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     expect(result.current.loading).toBe(true)
   })
 
   it('resolves words from buildRevisionList on mount', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.words.length).toBeGreaterThan(0)
     expect(result.current.words.length).toBeLessThanOrEqual(10)
   })
 
   it('all returned words come from the known pool', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     const wordIds = new Set(testWords.map(w => w.id))
     result.current.words.forEach(w => expect(wordIds.has(w.id)).toBe(true))
   })
 
   it('word list does not change after initial mount (stable mid-session)', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     const initial = result.current.words.map(w => w.id)
     act(() => {})
@@ -62,20 +67,20 @@ describe('useRevisionSession', () => {
   })
 
   it('starts at index 0', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.currentIndex).toBe(0)
   })
 
   it('advance() increments currentIndex', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     act(() => result.current.advance())
     expect(result.current.currentIndex).toBe(1)
   })
 
   it('isComplete becomes true when advance reaches end', async () => {
-    const { result } = renderHook(() => useRevisionSession())
+    const { result } = renderHook(() => useRevisionSession(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
     const total = result.current.words.length
     for (let i = 0; i < total; i++) {

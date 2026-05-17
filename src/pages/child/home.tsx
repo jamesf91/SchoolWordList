@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { ProfilePicker } from '@/components/child/profile-picker'
-import { BTN_START_SESSION, APP_TITLE, MSG_NO_WORDS_BODY } from '@/constants/strings'
+import { APP_TITLE, MSG_NO_WORDS_BODY, LABEL_CHOOSE_MODE, BTN_MODE_WEEKLY, BTN_MODE_ALL } from '@/constants/strings'
 import { useDb } from '@/context/db-context'
 import { useChild } from '@/context/child-context'
 import { useChildProfile } from '@/hooks/use-child-profile'
@@ -53,13 +53,26 @@ export default function ChildHome() {
         <p className="text-xl text-slate-500">{MSG_NO_WORDS_BODY}</p>
       )}
 
-      <Button
-        onClick={() => navigate('/session')}
-        disabled={!hasWords}
-        className="min-w-64 py-6 text-2xl"
-      >
-        {BTN_START_SESSION}
-      </Button>
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-xl font-medium text-slate-600">{LABEL_CHOOSE_MODE}</p>
+        <div className="flex gap-4">
+          <Button
+            onClick={() => navigate('/session')}
+            disabled={!hasWords}
+            className="min-w-44 py-6 text-xl"
+          >
+            {BTN_MODE_WEEKLY}
+          </Button>
+          <button
+            type="button"
+            onClick={() => navigate('/session?mode=all')}
+            disabled={!hasWords}
+            className="min-w-44 py-6 text-xl inline-flex items-center justify-center gap-2 rounded-xl px-6 min-h-14 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-amber-950"
+          >
+            {BTN_MODE_ALL}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
