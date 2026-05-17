@@ -89,8 +89,12 @@ export default function ParentSettings() {
     const [weeks, words] = await Promise.all([getAllWeeks(db), getAllWords(db)])
     const exampleEntries = await Promise.all(
       words.map(async w => {
-        const sentence = await getExample(db, w.id)
-        return sentence ? ([w.id, sentence] as [string, string]) : null
+        try {
+          const sentence = await getExample(db, w.id)
+          return sentence ? ([w.id, sentence] as [string, string]) : null
+        } catch {
+          return null
+        }
       })
     )
     const examples = new Map<string, string>(
@@ -135,7 +139,9 @@ export default function ParentSettings() {
 
     for (const week of weeks) await upsertWeek(db, week)
     for (const word of words) await upsertWord(db, word)
-    for (const [wordId, sentence] of examples) await setExample(db, wordId, sentence)
+    for (const [wordId, sentence] of examples) {
+      try { await setExample(db, wordId, sentence) } catch { /* store not yet migrated */ }
+    }
     setImportMsg(MSG_IMPORT_SUCCESS(weeks.length, words.length))
   }
 
