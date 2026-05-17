@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { ProfilePicker } from '@/components/child/profile-picker'
-import { BTN_START_SESSION, APP_TITLE, MSG_NO_WORDS_BODY, GREETING } from '@/constants/strings'
+import { BTN_START_SESSION, APP_TITLE, MSG_NO_WORDS_BODY } from '@/constants/strings'
 import { useDb } from '@/context/db-context'
 import { useChild } from '@/context/child-context'
 import { useChildProfile } from '@/hooks/use-child-profile'
 import { getAllWords } from '@/db/words'
-
-const LONG_PRESS_MS = 3000
-const MOVE_THRESHOLD_PX = 10
 
 export default function ChildHome() {
   const navigate = useNavigate()
@@ -19,8 +16,6 @@ export default function ChildHome() {
   const { profiles } = useChildProfile()
   const [hasWords, setHasWords] = useState(false)
   const [wordsLoading, setWordsLoading] = useState(true)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const startPosRef = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     if (!db) return
@@ -29,26 +24,6 @@ export default function ChildHome() {
       setWordsLoading(false)
     })
   }, [db])
-
-  const cancelLongPress = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-    startPosRef.current = null
-  }, [])
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    startPosRef.current = { x: e.clientX, y: e.clientY }
-    timerRef.current = setTimeout(() => navigate('/parent/pin'), LONG_PRESS_MS)
-  }, [navigate])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!startPosRef.current) return
-    const dx = Math.abs(e.clientX - startPosRef.current.x)
-    const dy = Math.abs(e.clientY - startPosRef.current.y)
-    if (dx > MOVE_THRESHOLD_PX || dy > MOVE_THRESHOLD_PX) cancelLongPress()
-  }, [cancelLongPress])
 
   if (loading || wordsLoading) {
     return (
@@ -60,30 +35,18 @@ export default function ChildHome() {
 
   // Show profile picker when multiple profiles exist and none is selected
   if (!activeChild && profiles.length > 1) {
-    return (
-      <div
-        onPointerDown={handlePointerDown}
-        onPointerUp={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        onPointerMove={handlePointerMove}
-      >
-        <ProfilePicker profiles={profiles} onSelect={setActiveChild} />
-      </div>
-    )
+    return <ProfilePicker profiles={profiles} onSelect={setActiveChild} />
   }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-sky-50 p-8 text-center">
-      {/* Long-press on title for hidden parent entry — not discoverable by a11y */}
-      <h1
-        className="select-none text-5xl font-bold text-sky-800"
-        onPointerDown={handlePointerDown}
-        onPointerUp={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        onPointerMove={handlePointerMove}
-        aria-label={APP_TITLE}
-      >
-        {activeChild ? GREETING(activeChild.name) : APP_TITLE}
+      <h1 className="select-none text-5xl font-bold text-sky-800" aria-label={activeChild ? `Hi ${activeChild.name}! Ready to practise?` : APP_TITLE}>
+        {activeChild ? (
+          <>
+            <span onDoubleClick={() => navigate('/parent/pin')} className="cursor-default">Hi</span>
+            {` ${activeChild.name}! Ready to practise?`}
+          </>
+        ) : APP_TITLE}
       </h1>
 
       {!hasWords && (

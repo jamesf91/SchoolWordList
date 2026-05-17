@@ -28,7 +28,10 @@
       "Bash(npm run build)",
       "Bash(git stash *)",
       "Bash(npx tsc *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(git commit *)",
+      "Bash(npm list *)",
+      "Bash(pkill -f \"vite\")"
     ]
   },
   "hooks": {
