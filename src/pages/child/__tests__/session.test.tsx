@@ -78,35 +78,31 @@ describe('ChildSession — ReplayButton always present', () => {
 
   it('replay button is visible during result phase', async () => {
     setup()
-    const input = screen.getByRole('textbox')
-    await userEvent.type(input, 'light{Enter}')
+    // Submit via on-screen keyboard
+    for (const letter of ['L', 'I', 'G', 'H', 'T']) {
+      await userEvent.click(screen.getByRole('button', { name: letter }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: /check my answer/i }))
     // After submission, replay button still present
     expect(screen.getByRole('button', { name: /replay|hear/i })).toBeInTheDocument()
   })
 })
 
-describe('ChildSession — SpellingInput attributes', () => {
-  it('input has autocorrect off', () => {
+describe('ChildSession — no native keyboard', () => {
+  it('renders no native text input element during question phase', () => {
     setup()
-    expect(screen.getByRole('textbox')).toHaveAttribute('autocorrect', 'off')
-  })
-
-  it('input has autocapitalize off', () => {
-    setup()
-    expect(screen.getByRole('textbox')).toHaveAttribute('autocapitalize', 'off')
-  })
-
-  it('input has spellcheck false', () => {
-    setup()
-    expect(screen.getByRole('textbox')).toHaveAttribute('spellcheck', 'false')
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(document.querySelector('input')).toBeNull()
   })
 })
 
 describe('ChildSession — attempt recording', () => {
-  it('calls insertAttempt with correct=true for right answer (case-insensitive)', async () => {
+  it('calls insertAttempt with correct=true for right answer', async () => {
     setup()
-    const input = screen.getByRole('textbox')
-    await userEvent.type(input, 'LIGHT{Enter}')
+    for (const letter of ['L', 'I', 'G', 'H', 'T']) {
+      await userEvent.click(screen.getByRole('button', { name: letter }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: /check my answer/i }))
     await waitFor(() => expect(mockInsertAttempt).toHaveBeenCalledWith(
       expect.objectContaining({ wordId: 'w1', correct: true }),
     ))
@@ -114,8 +110,10 @@ describe('ChildSession — attempt recording', () => {
 
   it('calls insertAttempt with correct=false for wrong answer', async () => {
     setup()
-    const input = screen.getByRole('textbox')
-    await userEvent.type(input, 'wrong{Enter}')
+    for (const letter of ['W', 'R', 'O', 'N', 'G']) {
+      await userEvent.click(screen.getByRole('button', { name: letter }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: /check my answer/i }))
     await waitFor(() => expect(mockInsertAttempt).toHaveBeenCalledWith(
       expect.objectContaining({ wordId: 'w1', correct: false }),
     ))

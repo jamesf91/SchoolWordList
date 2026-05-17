@@ -22,6 +22,8 @@ export const BTN_SUBMIT_ANSWER = 'Check my answer'
 export const BTN_NEXT_WORD = 'Next word'
 export const PLACEHOLDER_ANSWER = 'Type the word here…'
 export const ARIA_ANSWER_INPUT = 'Type your spelling here'
+export const BTN_CLEAR_ANSWER = 'Clear'
+export const ARIA_KEYBOARD_DISPLAY = 'Your typed answer'
 
 export const LABEL_WORD_COUNT = (current: number, total: number) =>
   `Word ${current} of ${total}`

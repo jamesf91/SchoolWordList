@@ -89,7 +89,7 @@ export default function ChildSession() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-sky-50 p-8">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-sky-50 p-3">
       <p className="text-lg font-medium text-slate-500">
         {LABEL_WORD_COUNT(currentIndex + 1, words.length)}
       </p>
