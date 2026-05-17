@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePinGate } from '@/hooks/use-pin-gate'
+import { useChild } from '@/context/child-context'
+import { useChildProfile } from '@/hooks/use-child-profile'
 import { hashPin, loadPinHash, savePinHash, verifyPin } from '@/lib/pin'
 import { Button } from '@/components/ui/button'
 import {
-  BTN_BACK, BTN_SAVE, MSG_WRONG_PIN, ERR_SAVE_FAILED,
+  BTN_BACK, BTN_SAVE, BTN_CANCEL, BTN_DELETE, BTN_EDIT, MSG_WRONG_PIN, ERR_SAVE_FAILED,
   LABEL_EXPORT, BTN_EXPORT, EXPORT_DESC,
   LABEL_IMPORT, BTN_IMPORT, IMPORT_DESC,
   MSG_IMPORT_SUCCESS, MSG_IMPORT_NOTHING, ERR_IMPORT_FAILED,
+  LABEL_CHILDREN, BTN_ADD_CHILD, LABEL_CHILD_NAME, PLACEHOLDER_CHILD_NAME,
+  MSG_CHILD_NAME_REQUIRED, MSG_CANNOT_DELETE_CHILD,
 } from '@/constants/strings'
 import { SESSION_SIZE } from '@/constants/config'
 import { useDb } from '@/context/db-context'
@@ -27,6 +31,8 @@ export default function ParentSettings() {
   const navigate = useNavigate()
   const { lock } = usePinGate()
   const { db } = useDb()
+  const { clearActiveChild } = useChild()
+  const { profiles, addProfile, renameProfile, removeProfile } = useChildProfile()
   const [sessionSize, setSessionSize] = useState(loadSessionSize)
   const [currentPin, setCurrentPin] = useState('')
   const [newPin, setNewPin] = useState('')
@@ -36,6 +42,12 @@ export default function ParentSettings() {
   const [importMsg, setImportMsg] = useState('')
   const [importErrors, setImportErrors] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Child profile management state
+  const [newChildName, setNewChildName] = useState('')
+  const [newChildMsg, setNewChildMsg] = useState('')
+  const [editingChildId, setEditingChildId] = useState<string | null>(null)
+  const [editingChildName, setEditingChildName] = useState('')
+  const [deleteChildMsg, setDeleteChildMsg] = useState<Record<string, string>>({})
 
   useEffect(() => {
     localStorage.setItem(LS_SESSION_SIZE, String(sessionSize))
@@ -116,6 +128,30 @@ export default function ParentSettings() {
     setImportMsg(MSG_IMPORT_SUCCESS(weeks.length, words.length))
   }
 
+  async function handleAddChild() {
+    if (!newChildName.trim()) { setNewChildMsg(MSG_CHILD_NAME_REQUIRED); return }
+    await addProfile(newChildName)
+    setNewChildName('')
+    setNewChildMsg('')
+  }
+
+  async function handleRenameChild(id: string) {
+    if (!editingChildName.trim()) return
+    await renameProfile(id, editingChildName)
+    setEditingChildId(null)
+    setEditingChildName('')
+  }
+
+  async function handleDeleteChild(id: string) {
+    const result = await removeProfile(id)
+    if (result.blocked) {
+      setDeleteChildMsg(prev => ({ ...prev, [id]: MSG_CANNOT_DELETE_CHILD(result.count) }))
+    } else {
+      clearActiveChild()
+      setDeleteChildMsg(prev => { const next = { ...prev }; delete next[id]; return next })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-md flex flex-col gap-8">
@@ -123,6 +159,53 @@ export default function ParentSettings() {
           <Button variant="ghost" onClick={() => navigate('/parent/dashboard')} className="text-sm">{BTN_BACK}</Button>
           <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
         </div>
+
+        {/* Children */}
+        <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+          <h2 className="mb-4 text-lg font-semibold text-slate-800">{LABEL_CHILDREN}</h2>
+          <div className="flex flex-col gap-2 mb-4">
+            {profiles.map(profile => (
+              <div key={profile.id} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                {editingChildId === profile.id ? (
+                  <>
+                    <input
+                      autoFocus
+                      value={editingChildName}
+                      onChange={e => setEditingChildName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleRenameChild(profile.id) }}
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-base focus:outline-none focus:border-blue-500"
+                      aria-label={LABEL_CHILD_NAME}
+                    />
+                    <Button variant="secondary" onClick={() => setEditingChildId(null)} className="text-sm px-3">{BTN_CANCEL}</Button>
+                    <Button onClick={() => handleRenameChild(profile.id)} className="text-sm px-3">{BTN_SAVE}</Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 font-medium text-slate-800">{profile.name}</span>
+                    <Button variant="ghost" onClick={() => { setEditingChildId(profile.id); setEditingChildName(profile.name) }} className="text-sm px-3">{BTN_EDIT}</Button>
+                    <Button variant="ghost" onClick={() => handleDeleteChild(profile.id)} className="text-sm px-3 text-red-600">{BTN_DELETE}</Button>
+                  </>
+                )}
+              </div>
+            ))}
+            {profiles.map(profile => deleteChildMsg[profile.id] && (
+              <p key={`msg-${profile.id}`} className="text-xs text-amber-700 px-1">{deleteChildMsg[profile.id]}</p>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newChildName}
+              onChange={e => setNewChildName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddChild() }}
+              placeholder={PLACEHOLDER_CHILD_NAME}
+              aria-label={LABEL_CHILD_NAME}
+              className="flex-1 rounded-xl border-2 border-slate-300 px-4 min-h-12 text-base focus:border-blue-500 focus:outline-none"
+            />
+            <Button onClick={handleAddChild}>{BTN_ADD_CHILD}</Button>
+          </div>
+          {newChildMsg && <p className="mt-2 text-sm text-amber-700">{newChildMsg}</p>}
+        </section>
 
         {/* Session size */}
         <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">

@@ -18,6 +18,7 @@ function attempt(wordId: string, correct: boolean, daysAgo = 0): Attempt {
   return {
     id: `att-${wordId}-${correct}-${daysAgo}`,
     wordId,
+    childId: 'child-test',
     date: NOW - daysAgo * 24 * 60 * 60 * 1000,
     correct,
   }

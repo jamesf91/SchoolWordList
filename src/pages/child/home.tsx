@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { BTN_START_SESSION, APP_TITLE, MSG_NO_WORDS_BODY } from '@/constants/strings'
+import { ProfilePicker } from '@/components/child/profile-picker'
+import { BTN_START_SESSION, APP_TITLE, MSG_NO_WORDS_BODY, GREETING } from '@/constants/strings'
 import { useDb } from '@/context/db-context'
+import { useChild } from '@/context/child-context'
+import { useChildProfile } from '@/hooks/use-child-profile'
 import { getAllWords } from '@/db/words'
 
 const LONG_PRESS_MS = 3000
@@ -12,6 +15,8 @@ const MOVE_THRESHOLD_PX = 10
 export default function ChildHome() {
   const navigate = useNavigate()
   const { db, loading } = useDb()
+  const { activeChild, setActiveChild } = useChild()
+  const { profiles } = useChildProfile()
   const [hasWords, setHasWords] = useState(false)
   const [wordsLoading, setWordsLoading] = useState(true)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -53,6 +58,20 @@ export default function ChildHome() {
     )
   }
 
+  // Show profile picker when multiple profiles exist and none is selected
+  if (!activeChild && profiles.length > 1) {
+    return (
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerMove={handlePointerMove}
+      >
+        <ProfilePicker profiles={profiles} onSelect={setActiveChild} />
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-sky-50 p-8 text-center">
       {/* Long-press on title for hidden parent entry — not discoverable by a11y */}
@@ -64,7 +83,7 @@ export default function ChildHome() {
         onPointerMove={handlePointerMove}
         aria-label={APP_TITLE}
       >
-        {APP_TITLE}
+        {activeChild ? GREETING(activeChild.name) : APP_TITLE}
       </h1>
 
       {!hasWords && (

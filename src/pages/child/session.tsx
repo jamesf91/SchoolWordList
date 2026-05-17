@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRevisionSession } from '@/hooks/use-revision-session'
 import { useAttempts } from '@/hooks/use-attempts'
 import { useTts } from '@/hooks/use-tts'
+import { useChild } from '@/context/child-context'
 import { SpellingInput } from '@/components/child/spelling-input'
 import { ReplayButton } from '@/components/child/replay-button'
 import { ResultPanel } from '@/components/child/result-panel'
@@ -17,9 +18,15 @@ interface SessionResult {
 
 export default function ChildSession() {
   const navigate = useNavigate()
+  const { activeChild } = useChild()
   const { words, currentIndex, advance, isComplete, loading } = useRevisionSession()
   const { insertAttempt } = useAttempts()
   const { speak, cancel, isSpeaking, isSupported } = useTts()
+
+  // Redirect to home if no child profile is selected (e.g. direct URL navigation)
+  useEffect(() => {
+    if (!activeChild) navigate('/', { replace: true })
+  }, [activeChild, navigate])
   const [result, setResult] = useState<{ correct: boolean } | null>(null)
   const [sessionResults, setSessionResults] = useState<SessionResult>({ correct: 0, total: 0 })
 

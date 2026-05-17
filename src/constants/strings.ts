@@ -100,6 +100,18 @@ export const LABEL_CORRECT = 'Correct'
 export const LABEL_ACCURACY = 'Accuracy'
 export const MSG_NO_ATTEMPTS = 'No attempts recorded yet.'
 
+// ── Child profiles ────────────────────────────────────────────────────────────
+
+export const LABEL_WHO_IS_PRACTISING = 'Who is practising today?'
+export const BTN_ADD_CHILD = 'Add child'
+export const LABEL_CHILD_NAME = "Child's name"
+export const PLACEHOLDER_CHILD_NAME = 'e.g. Lily'
+export const MSG_CHILD_NAME_REQUIRED = 'Please enter a name'
+export const MSG_CANNOT_DELETE_CHILD = (attempts: number) =>
+  `Cannot delete — this child has ${attempts} attempt record${attempts !== 1 ? 's' : ''}`
+export const GREETING = (name: string) => `Hi ${name}! Ready to practise?`
+export const LABEL_CHILDREN = 'Children'
+
 // ── Import / Export ───────────────────────────────────────────────────────────
 
 export const LABEL_EXPORT = 'Export word lists'

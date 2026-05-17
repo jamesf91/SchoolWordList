@@ -32,6 +32,15 @@ vi.mock('@/hooks/use-tts', () => ({
   useTts: () => ({ speak: vi.fn(), cancel: vi.fn(), isSpeaking: false, isSupported: true }),
 }))
 
+// ── mock child-context ────────────────────────────────────────────────────────
+vi.mock('@/context/child-context', () => ({
+  useChild: () => ({
+    activeChild: { id: 'child-1', name: 'Test Child', createdAt: 0 },
+    setActiveChild: vi.fn(),
+    clearActiveChild: vi.fn(),
+  }),
+}))
+
 function setup() {
   return render(
     <MemoryRouter initialEntries={['/session']}>
