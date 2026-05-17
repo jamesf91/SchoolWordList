@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWords } from '@/hooks/use-words'
 import { useWeeks } from '@/hooks/use-weeks'
+import { useDb } from '@/context/db-context'
+import { fetchExampleSentence } from '@/lib/fetch-example'
+import { setExample } from '@/db/examples'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -26,14 +29,24 @@ export default function WeekDetail() {
   const [editText, setEditText] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
+  const { db } = useDb()
   const week = weeks.find(w => w.id === weekId)
 
   if (!week) return <div className="flex min-h-screen items-center justify-center"><Spinner /></div>
 
+  function cacheExample(wordId: string, text: string) {
+    if (!db) return
+    fetchExampleSentence(text).then(sentence => {
+      if (sentence) setExample(db, wordId, sentence)
+    })
+  }
+
   async function handleAddWord(category: WordCategory) {
     if (!newText.trim() || !weekId) return
     const texts = newText.split(',').map(w => w.trim()).filter(Boolean)
-    await Promise.all(texts.map(text => upsertWord({ id: nanoid(), weekId, text, category })))
+    const words = texts.map(text => ({ id: nanoid(), weekId, text, category }))
+    await Promise.all(words.map(w => upsertWord(w)))
+    words.forEach(w => cacheExample(w.id, w.text))
     setNewText('')
     setAdding(null)
   }
@@ -41,6 +54,7 @@ export default function WeekDetail() {
   async function handleEditSave(word: Word) {
     if (!editText.trim()) return
     await upsertWord({ ...word, text: editText.trim() })
+    cacheExample(word.id, editText.trim())
     setEditingId(null)
   }
 

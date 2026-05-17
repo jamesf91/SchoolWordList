@@ -1,6 +1,11 @@
 import { openDB as idbOpenDB, type IDBPDatabase } from 'idb'
 import type { Week, Word, Attempt, ChildProfile } from '@/types'
-import { DB_NAME, DB_VERSION, STORE_WEEKS, STORE_WORDS, STORE_ATTEMPTS, STORE_PROFILES } from '@/constants/db'
+import { DB_NAME, DB_VERSION, STORE_WEEKS, STORE_WORDS, STORE_ATTEMPTS, STORE_PROFILES, STORE_EXAMPLES } from '@/constants/db'
+
+interface WordExample {
+  wordId: string
+  sentence: string
+}
 
 interface SpellingDB {
   [STORE_PROFILES]: {
@@ -28,6 +33,10 @@ interface SpellingDB {
       'by-childId': string
       'by-childId-wordId': [string, string]
     }
+  }
+  [STORE_EXAMPLES]: {
+    key: string
+    value: WordExample
   }
 }
 
@@ -71,6 +80,10 @@ export const dbPromise: Promise<SpellingIDB> = idbOpenDB<SpellingDB>(DB_NAME, DB
         await cursor.update({ ...cursor.value, childId: 'child-legacy-1' })
         cursor = await cursor.continue()
       }
+    }
+
+    if (oldVersion < 3) {
+      db.createObjectStore(STORE_EXAMPLES, { keyPath: 'wordId' })
     }
   },
 })

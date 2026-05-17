@@ -4,10 +4,12 @@ import { useRevisionSession } from '@/hooks/use-revision-session'
 import { useAttempts } from '@/hooks/use-attempts'
 import { useTts } from '@/hooks/use-tts'
 import { useChild } from '@/context/child-context'
+import { useDb } from '@/context/db-context'
 import { SpellingInput } from '@/components/child/spelling-input'
 import { ReplayButton } from '@/components/child/replay-button'
 import { ResultPanel } from '@/components/child/result-panel'
 import { Spinner } from '@/components/ui/spinner'
+import { getExample } from '@/db/examples'
 import { nanoid } from 'nanoid'
 import { LABEL_WORD_COUNT } from '@/constants/strings'
 
@@ -26,9 +28,11 @@ interface SessionResult {
 export default function ChildSession() {
   const navigate = useNavigate()
   const { activeChild } = useChild()
+  const { db } = useDb()
   const { words, currentIndex, advance, isComplete, loading } = useRevisionSession()
   const { insertAttempt } = useAttempts()
   const { speak, cancel, isSpeaking, isSupported } = useTts()
+  const [exampleSentence, setExampleSentence] = useState<string | null>(null)
 
   // Redirect to home if no child profile is selected (e.g. direct URL navigation)
   useEffect(() => {
@@ -43,12 +47,19 @@ export default function ChildSession() {
     if (currentWord && isSupported) speak(currentWord.text)
   }, [currentWord, speak, isSupported])
 
-  // Auto-read the word 1 second after it appears
+  // Auto-read the word 0.5s after it appears
   useEffect(() => {
     if (!currentWord || !isSupported || result !== null) return
     const timer = setTimeout(() => speak(currentWord.text), 500)
     return () => clearTimeout(timer)
   }, [currentIndex, currentWord, isSupported, result, speak])
+
+  // Load cached example sentence for the current word
+  useEffect(() => {
+    setExampleSentence(null)
+    if (!db || !currentWord) return
+    getExample(db, currentWord.id).then(setExampleSentence)
+  }, [db, currentWord])
 
   const handleSubmit = useCallback(async (answer: string) => {
     if (!currentWord) return
@@ -114,6 +125,7 @@ export default function ChildSession() {
         <ResultPanel
           correct={result.correct}
           correctSpelling={currentWord?.text ?? ''}
+          exampleSentence={exampleSentence}
           onNext={handleNext}
         />
       )}

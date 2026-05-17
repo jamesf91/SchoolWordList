@@ -5,6 +5,16 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ChildSession from '../session'
 import type { Word } from '@/types'
 
+// ── mock db-context ───────────────────────────────────────────────────────────
+vi.mock('@/context/db-context', () => ({
+  useDb: () => ({ db: {}, loading: false, error: null }),
+}))
+
+// ── mock db/examples ─────────────────────────────────────────────────────────
+vi.mock('@/db/examples', () => ({
+  getExample: vi.fn().mockResolvedValue(null),
+}))
+
 // ── mock use-revision-session ─────────────────────────────────────────────────
 const mockWords: Word[] = [
   { id: 'w1', weekId: 'wk1', text: 'light', category: 'core' },
