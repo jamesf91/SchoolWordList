@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { BTN_CLEAR_ANSWER, BTN_SUBMIT_ANSWER, ARIA_KEYBOARD_DISPLAY } from '@/constants/strings'
+import { BTN_SUBMIT_ANSWER, ARIA_KEYBOARD_DISPLAY } from '@/constants/strings'
 
 const ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],

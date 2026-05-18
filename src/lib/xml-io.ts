@@ -47,20 +47,20 @@ export function parseXml(xml: string): ImportResult {
     doc = parser.parseFromString(xml, 'application/xml')
     const parseError = doc.querySelector('parsererror')
     if (parseError) {
-      return { weeks, words, errors: ['Invalid XML: ' + parseError.textContent?.split('\n')[0]] }
+      return { weeks, words, examples, errors: ['Invalid XML: ' + parseError.textContent?.split('\n')[0]] }
     }
   } catch {
-    return { weeks, words, errors: ['Could not parse file as XML.'] }
+    return { weeks, words, examples, errors: ['Could not parse file as XML.'] }
   }
 
   const root = doc.documentElement
   if (root.tagName !== 'wordlists') {
-    return { weeks, words, errors: [`Expected root element <wordlists>, got <${root.tagName}>.`] }
+    return { weeks, words, examples, errors: [`Expected root element <wordlists>, got <${root.tagName}>.`] }
   }
 
   const weekEls = Array.from(root.querySelectorAll(':scope > week'))
   if (weekEls.length === 0) {
-    return { weeks, words, errors: ['No <week> elements found.'] }
+    return { weeks, words, examples, errors: ['No <week> elements found.'] }
   }
 
   const seenNumbers = new Set<number>()
