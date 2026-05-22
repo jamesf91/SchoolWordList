@@ -28,6 +28,9 @@ export const ARIA_ANSWER_INPUT = 'Type your spelling here'
 export const BTN_CLEAR_ANSWER = 'Clear'
 export const ARIA_KEYBOARD_DISPLAY = 'Your typed answer'
 export const LABEL_EXAMPLE_SENTENCE = 'Example:'
+export const PLACEHOLDER_EXAMPLE_SENTENCE = 'e.g. The cat sat on the mat.'
+export const MSG_EXAMPLE_MISSING_WORD = (word: string) =>
+  `The example sentence must contain the word "${word}".`
 
 export const LABEL_WORD_COUNT = (current: number, total: number) =>
   `Word ${current} of ${total}`
